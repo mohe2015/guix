@@ -444,6 +444,60 @@ available.")
 Node-core.")
     (license license:expat)))
 
+(define-public node-readable-stream
+  (package
+    (name "node-readable-stream")
+    (version "3.6.0")
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+             (url "https://github.com/nodejs/readable-stream")
+             (commit (string-append "v" version))))
+       (file-name (git-file-name name version))
+       (sha256
+        (base32
+         "0ybl4cdgsm9c5jq3xq8s01201jk8w0yakh63hlclsfbcdfqhd9ri"))))
+    (build-system node-build-system)
+    (arguments
+     `(#:absent-dependencies
+       `("@babel/cli"
+         "@babel/core"
+         "@babel/polyfill"
+         "@babel/preset-env"
+         "airtap"
+         "assert"
+         "bl"
+         "deep-strict-equal"
+         "events.once"
+         "glob"
+         "gunzip-maybe"
+         "hyperquest"
+         "lolex"
+         "nyc"
+         "pump"
+         "rimraf"
+         "tap"
+         "tape"
+         "tar-fs"
+         "util-promisify")
+       #:tests? #f))
+    (inputs
+     `(("node-util-deprecate" ,node-util-deprecate)
+       ("node-string-decoder" ,node-string-decoder)
+       ("node-inherits" ,node-inherits)))
+    (home-page
+     "https://github.com/nodejs/readable-stream")
+    (synopsis
+     "Node.js core streams for userland")
+    (description
+     "This package is a mirror of the streams implementations in Node.js.
+
+If you want to guarantee a stable streams base, regardless of what version of
+Node you (or the users of your libraries) are using, use
+@code{readable-stream} only and avoid the @code{stream} module in Node-core.")
+    (license license:expat)))
+
 (define-public node-irc-colors
   (package
     (name "node-irc-colors")
