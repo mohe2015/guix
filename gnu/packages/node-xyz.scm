@@ -382,6 +382,34 @@ if desired.")
 @code{inherits()}.")
     (license license:isc)))
 
+(define-public node-safe-buffer
+  (package
+    (name "node-safe-buffer")
+    (version "5.2.1")
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+             (url "https://github.com/feross/safe-buffer")
+             (commit (string-append "v" version))))
+       (file-name (git-file-name name version))
+       (sha256
+        (base32
+         "0r26m0nl41h90ihnl2xf0cqs6z9z7jb87dl5j8yqb7887r9jlbpi"))))
+    (build-system node-build-system)
+    (arguments
+     '(#:absent-dependencies
+       '("tape"
+         "standard")
+       #:tests? #f))
+    (home-page
+     "https://github.com/feross/safe-buffer")
+    (synopsis "Safer Node.js Buffer API")
+    (description "A safe drop-in replacement the Node.js @code{Buffer} API
+that works in all versions of Node.js, using the built-in implementation when
+available.")
+    (license license:expat)))
+
 (define-public node-irc-colors
   (package
     (name "node-irc-colors")
