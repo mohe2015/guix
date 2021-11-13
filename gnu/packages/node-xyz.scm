@@ -410,6 +410,40 @@ that works in all versions of Node.js, using the built-in implementation when
 available.")
     (license license:expat)))
 
+(define-public node-string-decoder
+  (package
+    (name "node-string-decoder")
+    (version "1.3.0")
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+             (url "https://github.com/nodejs/string_decoder")
+             (commit (string-append "v" version))))
+       (file-name (git-file-name name version))
+       (sha256
+        (base32
+         "0xxvyya9fl9rlkqwmxzqzbz4rdr3jgw4vf37hff7cgscxkhg266k"))))
+    (build-system node-build-system)
+    (arguments
+     '(#:absent-dependencies
+       '("tap"
+         "core-util-is"
+         "babel-polyfill")
+       ;; FIXME: Tests depend on node-tap
+       #:tests? #f))
+    (inputs
+     `(("node-safe-buffer" ,node-safe-buffer)
+       ("node-inherits" ,node-inherits)))
+    (home-page
+     "https://github.com/nodejs/string_decoder")
+    (synopsis
+     "Node.js core @code{string_decoder} for userland")
+    (description
+     "This package is a mirror of the @code{string_decoder} implementation in
+Node-core.")
+    (license license:expat)))
+
 (define-public node-irc-colors
   (package
     (name "node-irc-colors")
