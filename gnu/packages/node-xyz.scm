@@ -3,6 +3,7 @@
 ;;; Copyright © 2020 Giacomo Leidi <goodoldpaul@autistici.org>
 ;;; Copyright © 2021 Noisytoot <noisytoot@disroot.org>
 ;;; Copyright © 2021 Charles <charles.b.jackson@protonmail.com>
+;;; Copyright © 2021 Philip McGrath <philip@philipmcgrath.com>
 ;;;
 ;;; This file is part of GNU Guix.
 ;;;
@@ -350,6 +351,35 @@ function with browser support.")
      "@code{once} is a Node.js module to call a function exactly one time.
 Subsequent calls will either return the cached previous value or throw an error
 if desired.")
+    (license license:isc)))
+
+(define-public node-inherits
+  (package
+    (name "node-inherits")
+    (version "2.0.4")
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+             (url "https://github.com/isaacs/inherits")
+             (commit (string-append "v" version))))
+       (file-name (git-file-name name version))
+       (sha256
+        (base32
+         "0cpsr5yqwkxpbbbbl0rwk4mcby6zbx841k2zb4c3gb1579i5wq9p"))))
+    (build-system node-build-system)
+    (arguments
+     '(#:absent-dependencies
+       '("tap")
+       ;; FIXME: Tests depend on node-tap
+       #:tests? #f))
+    (home-page
+     "https://github.com/isaacs/inherits")
+    (synopsis
+     "Browser-friendly inheritance Node.js")
+    (description
+     "Browser-friendly inheritance fully compatible with standard Node.js
+@code{inherits()}.")
     (license license:isc)))
 
 (define-public node-irc-colors
