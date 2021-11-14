@@ -22,6 +22,9 @@
 
 (define-module (gnu packages node-xyz)
   #:use-module ((guix licenses) #:prefix license:)
+  #:use-module (gnu packages sqlite)
+  #:use-module (gnu packages python)
+  #:use-module (guix gexp)
   #:use-module (guix packages)
   #:use-module (guix git-download)
   #:use-module (guix build-system node))
@@ -591,4 +594,64 @@ necessary to develop native Node.js addons without having to inspect
 
 This project also contains some helper utilities that make addon development a
 bit more pleasant.")
+    (license license:expat)))
+
+(define-public node-addon-api
+  (package
+    (name "node-addon-api")
+    (version "4.2.0")
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+             (url "https://github.com/nodejs/node-addon-api")
+             (commit (string-append "v" version))))
+       (file-name (git-file-name name version))
+       (sha256
+        (base32 "1bhvfi2m9nxfz418s619914vmidcnrzbjv6l9nid476c3zlpazch"))))
+    (inputs
+     `(("python" ,python)
+       ("node-safe-buffer" ,node-safe-buffer)))
+    (build-system node-build-system)
+    (arguments
+     `(#:absent-dependencies
+       `("benchmark"
+         "bindings"
+         "clang-format"
+         "eslint"
+         "eslint-config-semistandard"
+         "eslint-config-standard"
+         "eslint-plugin-import"
+         "eslint-plugin-node"
+         "eslint-plugin-promise"
+         "fs-extra"
+         "path"
+         "pre-commit")
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'skip-js-tests
+           ;; We can't run the js-based tests,
+           ;; but we can still do the C++ parts
+           (lambda args
+             (substitute* "package.json"
+               (("\"test\": \"node test\"")
+                "\"test\": \"echo stopping after pretest on Guix\"")))))))
+    (home-page "https://github.com/nodejs/node-addon-api")
+    (synopsis "Node.js API (Node-API) header-only C++ wrappers")
+    (description "This module contains header-only C++ wrapper classes which
+simplify the use of the C based Node-API provided by Node.js when using C++.
+It provides a C++ object model and exception handling semantics with low
+overhead.
+
+Node-API is an ABI stable C interface provided by Node.js for building native
+addons.  It is intended to insulate native addons from changes in the
+underlying JavaScript engine and allow modules compiled for one version to run
+on later versions of Node.js without recompilation.  The @code{node-addon-api}
+module, which is not part of Node.js, preserves the benefits of the Node-API
+as it consists only of inline code that depends only on the stable API
+provided by Node-API.
+
+It is important to remember that @emph{other} Node.js interfaces such as
+@code{libuv} (included in a project via @code{#include <uv.h>}) are not
+ABI-stable across Node.js major versions.")
     (license license:expat)))
