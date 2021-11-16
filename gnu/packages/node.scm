@@ -237,21 +237,20 @@
                             python
                             (string-append python "3")))
                       "configure" flags))))
-         (add-after 'patch-shebangs 'patch-npm-shebang
-           (lambda* (#:key outputs #:allow-other-keys)
-             (let* ((bindir (string-append (assoc-ref outputs "out")
-                                           "/bin"))
-                    (npm    (string-append bindir "/npm"))
-                    (target (readlink npm)))
-               (with-directory-excursion bindir
-                 (patch-shebang target (list bindir))))))
-         (add-after 'install 'patch-node-shebang
-           (lambda* (#:key outputs #:allow-other-keys)
-             (let* ((bindir (string-append (assoc-ref outputs "out")
-                                           "/bin"))
-                    (npx    (readlink (string-append bindir "/npx"))))
-               (with-directory-excursion bindir
-                 (patch-shebang npx (list bindir)))))))))
+         (add-after 'patch-shebangs 'patch-nested-shebangs
+           (lambda* (#:key inputs outputs #:allow-other-keys)
+             (let* ((prefix (assoc-ref outputs "out"))
+                    (path (map (lambda (dir)
+                                 (string-append dir "/bin"))
+                               (list prefix
+                                     (assoc-ref inputs "python-for-target")))))
+               (for-each
+                (lambda (file)
+                  (patch-shebang file path))
+                (find-files (string-append prefix "/lib/node_modules")
+                            (lambda (file stat)
+                              (executable-file? file))
+                            #:stat lstat))))))))
     (native-inputs
      `(;; Runtime dependencies for binaries used as a bootstrap.
        ("c-ares" ,c-ares)
@@ -274,6 +273,7 @@
     (inputs
      `(("bash" ,bash-minimal)
        ("coreutils" ,coreutils)
+       ("python-for-target" ,python-wrapper) ;; for node-gyp (supports python3)
        ("c-ares" ,c-ares)
        ("http-parser" ,http-parser)
        ("icu4c" ,icu4c)
@@ -799,6 +799,7 @@ source files.")
     (inputs
      `(("bash" ,bash-minimal)
        ("coreutils" ,coreutils)
+       ("python-for-target" ,python-wrapper) ;; for node-gyp (supports python3)
        ("c-ares" ,c-ares-for-node)
        ("icu4c" ,icu4c-67)
        ("libuv" ,libuv-for-node)
@@ -817,5 +818,4 @@ source files.")
         `(cons* "--shared" "--without-npm" ,flags))
        ((#:phases phases '%standard-phases)
         `(modify-phases ,phases
-           (delete 'patch-npm-shebang)
-           (delete 'patch-node-shebang)))))))
+           (delete 'patch-nested-shebangs)))))))
