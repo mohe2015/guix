@@ -544,9 +544,16 @@ Node.js and web browsers.")
     (arguments
      `(#:node ,node-bootstrap
        #:tests? #f
+       #:absent-dependencies
+       `("@types/debug"
+         "@types/mocha"
+         "@types/node"
+         "mocha"
+         "ts-node"
+         "tslint"
+         "typescript")
        #:phases
        (modify-phases %standard-phases
-         (delete 'configure)
          (replace 'build
            (lambda* (#:key inputs #:allow-other-keys)
              (let ((esbuild (string-append (assoc-ref inputs "esbuild")
