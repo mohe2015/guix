@@ -394,12 +394,12 @@ such as rainbows.")
                 "1ln4qfx20jbwg4cp8lp0vf27m5281z2sz16d15xd6150n26cbi4x"))))
     (build-system node-build-system)
     (arguments
-     '(#:tests? #f                      ; FIXME: tests depend on node-faucet
-       #:phases
-       (modify-phases %standard-phases
-         ;; The default configure phase fails due to various packages
-         ;; being missing, as we don't have them packaged yet.
-         (delete 'configure))))
+     '(#:absent-dependencies
+       `("ansi-color"
+         "faucet"
+         "jscs"
+         "tape")
+       #:tests? #f))
     (inputs
      `(("node-irc-colors" ,node-irc-colors)))
     (home-page "https://github.com/martynsmith/node-irc")
