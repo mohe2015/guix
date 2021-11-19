@@ -333,9 +333,8 @@ devices.")
     (arguments
      `(#:node ,node-bootstrap
        #:tests? #f
-       #:phases
-       (modify-phases %standard-phases
-         (delete 'configure))))
+       #:absent-dependencies
+       '("tap")))
     (home-page "https://github.com/npm/node-semver")
     (properties '((hidden? . #t)))
     (synopsis "Parses semantic versions strings")
