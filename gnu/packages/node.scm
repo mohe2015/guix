@@ -419,9 +419,18 @@ formats to milliseconds.")
     (arguments
      `(#:node ,node-bootstrap
        #:tests? #f
-       #:phases
-       (modify-phases %standard-phases
-         (delete 'configure))))
+       #:absent-dependencies
+       `("brfs"
+         "browserify"
+         "coveralls"
+         "istanbul"
+         "karma"
+         "karma-browserify"
+         "karma-chrome-launcher"
+         "karma-mocha"
+         "mocha"
+         "mocha-lcov-reporter"
+         "xo")))
     (inputs `(("node-ms" ,node-ms-bootstrap)))
     (home-page "https://github.com/visionmedia/debug#readme")
     (properties '((hidden? . #t)))
