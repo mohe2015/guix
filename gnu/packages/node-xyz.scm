@@ -24,6 +24,7 @@
   #:use-module ((guix licenses) #:prefix license:)
   #:use-module (gnu packages sqlite)
   #:use-module (gnu packages python)
+  #:use-module (gnu packages web)
   #:use-module (guix gexp)
   #:use-module (guix packages)
   #:use-module (guix git-download)
@@ -787,3 +788,57 @@ ABI-stable across Node.js major versions.")
 non-blocking bindings for SQLite3, written in modern C++ and tested for memory
 leaks.")
      (license license:bsd-3)))
+
+(define-public node-file-uri-to-path
+  (package
+    (name "node-file-uri-to-path")
+    (version "2.0.0")
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+             (url "https://github.com/TooTallNate/file-uri-to-path")
+             (commit version)))
+       (file-name (git-file-name name version))
+       (sha256
+        (base32 "08l779az44czm12xdhgcrnzpqw34s59hbrlfphs7g9y2k26drqav"))))
+    (native-inputs
+     `(("esbuild" ,esbuild)))
+    (build-system node-build-system)
+    (arguments
+     `(#:absent-dependencies
+       `("@types/mocha"
+         "@types/node"
+         "@typescript-eslint/eslint-plugin"
+         "@typescript-eslint/parser"
+         "cpy-cli"
+         "eslint"
+         "eslint-config-airbnb"
+         "eslint-config-prettier"
+         "eslint-import-resolver-typescript"
+         "eslint-plugin-import"
+         "eslint-plugin-jsx-a11y"
+         "eslint-plugin-react"
+         "mocha"
+         "rimraf"
+         "typescript")
+       #:phases
+       (modify-phases %standard-phases
+         (replace 'build
+           (lambda* (#:key inputs native-inputs #:allow-other-keys)
+             (copy-recursively "src" "dist")
+             (invoke (string-append
+                      (assoc-ref (or native-inputs inputs) "esbuild")
+                      "/bin/esbuild")
+                     "dist/index.ts"
+                     "--outfile=dist/src/index.js"
+                     "--format=cjs"
+                     "--sourcemap"
+                     "--platform=node"))))
+       #:tests? #f))
+    (home-page "https://github.com/TooTallNate/file-uri-to-path")
+    (synopsis "Convert a @code{file:} URI to a file path")
+    (description "This package provides a function to convert a @code{file:}
+URI to a file path.  It accepts a @code{file:} URI and returns a file path
+suitable for use with the @code{fs} module functions.")
+    (license license:expat)))
