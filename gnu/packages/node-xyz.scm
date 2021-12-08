@@ -842,3 +842,29 @@ leaks.")
 URI to a file path.  It accepts a @code{file:} URI and returns a file path
 suitable for use with the @code{fs} module functions.")
     (license license:expat)))
+
+(define-public node-bindings
+  (package
+    (name "node-bindings")
+    (version "1.5.0")
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+             (url "https://github.com/TooTallNate/node-bindings")
+             (commit version)))
+       (file-name (git-file-name name version))
+       (sha256
+        (base32 "100gp6kpjvd4j1dqnp0sbjr1hqx5mz7r61q9qy527jyhk9mj47wk"))))
+    (inputs
+     `(("node-file-uri-to-path" ,node-file-uri-to-path)))
+    (build-system node-build-system)
+    (arguments
+     ;; there are no tests
+     `(#:tests? #f))
+    (home-page "https://github.com/TooTallNate/node-bindings")
+    (synopsis "Help for loading your native module's @code{.node} file")
+    (description "This is a helper module for authors of Node.js native addon
+modules.  It is basically the ``swiss army knife'' of @code{require()}ing your
+native module's @code{.node} file.")
+    (license license:expat)))
