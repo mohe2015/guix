@@ -73,26 +73,45 @@
 
   (define index (index-modules (map cdr inputs)))
 
-  (define (resolve-dependencies package-meta meta-key)
-    (fold (lambda (key+value acc)
-            (match key+value
-              ('@ acc)
-              ((key . value) (acons key (hash-ref index key value) acc))))
-          '()
-          (or (assoc-ref package-meta meta-key) '())))
+  (define (resolve-dependencies meta-alist meta-key)
+    ;; Given:
+    ;;  - The alist from "package.json", with the '@ unwrapped
+    ;;  - A string key, like "dependencies"
+    ;; Returns: an alist (without a wrapping '@) like the entry in
+    ;; meta-alist for meta-key, but with dependencies supplied
+    ;; by Guix packages mapped to the absolute store paths to use.
+    (match (assoc-ref meta-alist meta-key)
+      (#f
+       '())
+      (('@ . orig-deps)
+       (fold (match-lambda*
+               (((key . value) acc)
+                (acons key (hash-ref index key value) acc)))
+             '()
+             orig-deps))))
 
   (with-atomic-file-replacement "package.json"
     (lambda (in out)
-      (let ((package-meta (read-json in)))
-        (assoc-set! package-meta "dependencies"
-                    (append
-                     '(@)
-                     (resolve-dependencies package-meta "dependencies")
-                     (resolve-dependencies package-meta "peerDependencies")))
-        (assoc-set! package-meta "devDependencies"
-                    (append
-                     '(@)
-                     (resolve-dependencies package-meta "devDependencies")))
+      ;; It is unsafe to rely on 'assoc-set!' to update an
+      ;; existing assosciation list variable:
+      ;; see 'info "(guile)Adding or Setting Alist Entries"'.
+      (let* ((package-meta (read-json in))
+             (alist (match package-meta
+                      ((@ . alist) alist)))
+             (alist
+              (assoc-set!
+               alist "dependencies"
+               (append
+                '(@)
+                (resolve-dependencies alist "dependencies")
+                (resolve-dependencies alist "peerDependencies"))))
+             (alist
+              (assoc-set!
+               alist "devDependencies"
+               (append
+                '(@)
+                (resolve-dependencies alist "devDependencies"))))
+             (package-meta (cons '@ alist)))
         (write-json package-meta out))))
   #t)
 
