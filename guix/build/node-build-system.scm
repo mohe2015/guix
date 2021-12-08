@@ -175,6 +175,62 @@ exist."
             "install" "../package.tgz")
     #t))
 
+(define* (avoid-node-gyp-rebuild #:key outputs #:allow-other-keys)
+  "Adjust the installed 'package.json' to remove an 'install' script that
+would try to run 'node-gyp rebuild'."
+  ;; We want to take advantage of `npm install`'s automatic support for
+  ;; building native addons with node-gyp: in particular, it helps us avoid
+  ;; hard-coding the specifics of how npm's internal copy of node-gyp is
+  ;; currently packaged. However, the mechanism by which the automatic support
+  ;; is implemented causes problems for us.
+  ;;
+  ;; If a package contains a 'binding.gyp' file and does not define an
+  ;; 'install' or 'preinstall' script, 'npm install' runs a default install
+  ;; script consisting of 'node-gyp rebuild'. In our 'install' phase, this
+  ;; implicit 'install' script, if it is applicable, is explicitly added to
+  ;; the "package.json" file. However, if another Guix package were to use a
+  ;; Node.js package with such an 'install' script, the dependent package's
+  ;; build process would fail, because 'node-gyp rebuild' would try to write
+  ;; to the store.
+  ;;
+  ;; Here, if the installed "package.json" defines scripts.install as
+  ;; "node-gyp rebuild", we replace it with a no-op. Importantly, deleting the
+  ;; install script definition would not be enough, because the default
+  ;; install script would cause the same problem.
+  ;;
+  ;; For further details, see:
+  ;;  - https://docs.npmjs.com/cli/v8/configuring-npm/package-json#default-values
+  ;;  - https://docs.npmjs.com/cli/v8/using-npm/scripts#best-practices
+  (let* ((package.json (string-append
+                        (assoc-ref outputs "out")
+                        "/lib/node_modules/"
+                        (match (call-with-input-file "package.json" read-json)
+                          (('@ . alist)
+                           (assoc-ref alist "name")))
+                        "/package.json"))
+         (meta-alist (match (call-with-input-file package.json read-json)
+                       (('@ . alist)
+                        alist)))
+         (scripts-alist (match (assoc-ref meta-alist "scripts")
+                          (('@ . alist)
+                           alist)
+                          (#f
+                           #f))))
+    (when (and scripts-alist
+               (equal? "node-gyp rebuild" (assoc-ref scripts-alist "install")))
+      (call-with-output-file package.json
+        (lambda (out)
+          (write-json
+           (cons '@ (assoc-set!
+                     meta-alist
+                     "scripts"
+                     (cons '@ (assoc-set!
+                               scripts-alist
+                               "install"
+                               "echo Guix: avoiding node-gyp rebuild"))))
+           out))))
+    #t))
+
 (define %standard-phases
   (modify-phases gnu:%standard-phases
     (add-after 'unpack 'set-home set-home)
@@ -184,7 +240,8 @@ exist."
     (replace 'build build)
     (replace 'check check)
     (add-before 'install 'repack repack)
-    (replace 'install install)))
+    (replace 'install install)
+    (add-after 'install 'avoid-node-gyp-rebuild avoid-node-gyp-rebuild)))
 
 (define* (node-build #:key inputs (phases %standard-phases)
                      #:allow-other-keys #:rest args)
