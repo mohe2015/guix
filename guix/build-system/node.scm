@@ -44,6 +44,7 @@
 (define* (lower name
                 #:key source inputs native-inputs outputs system target
                 (node (default-node))
+                (absent-dependencies ''())
                 #:allow-other-keys
                 #:rest arguments)
   "Return a bag for NAME."
@@ -73,6 +74,7 @@
                      (tests? #t)
                      (phases '(@ (guix build node-build-system)
                                  %standard-phases))
+                     (absent-dependencies ''())
                      (outputs '("out"))
                      (search-paths '())
                      (system (%current-system))
@@ -80,7 +82,21 @@
                      (imported-modules %node-build-system-modules)
                      (modules '((guix build node-build-system)
                                 (guix build utils))))
-  "Build SOURCE using NODE and INPUTS."
+  "Build SOURCE using NODE and INPUTS.
+
+The builder will remove Node.js packages listed in ABSENT-DEPENCENCIES from
+the 'package.json' file's 'dependencies' and 'devDependencies' tables.  This
+mechanism can be used both avoid dependencies we don't want (e.g. optional
+features that would increase closure size) and to work around dependencies
+that haven't been packaged for Guix yet (e.g. test utilities)."
+  ;; Before #:absent-dependencies existed, this scenario was often handled by
+  ;; deleting the 'configure phase. Using #:absent-dependencies, instead,
+  ;; retains the check that no dependencies are silently missing and other
+  ;; actions performed by 'npm install', such as building native
+  ;; addons. Having an explicit list of absent dependencies in the package
+  ;; definition should also facilitate future maintenence: for example, if we
+  ;; add a package for a test framework, it should be easy to find all the
+  ;; other packages that use it and enable their tests.
   (define builder
     `(begin
        (use-modules ,@modules)
@@ -94,6 +110,7 @@
                    #:test-target ,test-target
                    #:tests? ,tests?
                    #:phases ,phases
+                   #:absent-dependencies ,absent-dependencies
                    #:outputs %outputs
                    #:search-paths ',(map search-path-specification->sexp
                                          search-paths)

@@ -69,7 +69,8 @@
               input-paths)
     index))
 
-(define* (patch-dependencies #:key inputs #:allow-other-keys)
+(define* (patch-dependencies #:key inputs absent-dependencies
+                             #:allow-other-keys)
 
   (define index (index-modules (map cdr inputs)))
 
@@ -86,7 +87,9 @@
       (('@ . orig-deps)
        (fold (match-lambda*
                (((key . value) acc)
-                (acons key (hash-ref index key value) acc)))
+                (if (member key absent-dependencies)
+                    acc
+                    (acons key (hash-ref index key value) acc))))
              '()
              orig-deps))))
 
