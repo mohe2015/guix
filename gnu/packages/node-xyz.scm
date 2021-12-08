@@ -1063,3 +1063,59 @@ recommended high-level interface.
 Parsers are used to take raw binary data and transform them into usable
 messages.  This package provides @code{Readline}, a parser that emits data
 after a (configurable) newline delimiter is received.")))
+
+(define-public node-serialport-bindings
+  (package
+    (inherit node-serialport-binding-abstract)
+    (name "node-serialport-bindings")
+    (version "9.2.7")
+    (native-inputs
+     `(("python" ,python)))
+    (inputs
+     `(("node-nan" ,node-nan)
+       ("node-bindings" ,node-bindings)
+       ("node-serialport-binding-abstract" ,node-serialport-binding-abstract)
+       ("node-serialport-parser-readline" ,node-serialport-parser-readline)
+       ("node-debug" ,node-debug)))
+    (arguments
+     `(#:absent-dependencies
+       `("prebuild-install"
+         ;; devDependencies
+         "@serialport/binding-mock"
+         "node-abi")
+       #:modules
+       ((guix build node-build-system)
+        (guix build json)
+        (srfi srfi-1)
+        (ice-9 match)
+        (guix build utils))
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'chdir
+           (lambda args
+             (chdir "packages/bindings")))
+         (add-after 'chdir 'avoid-prebuild-install
+           (lambda args
+             (with-atomic-file-replacement "package.json"
+               (lambda (in out)
+                 (match (read-json in)
+                   (('@ . meta-alist)
+                    (match (assoc-ref meta-alist "scripts")
+                      (('@ . scripts-alist)
+                       (write-json
+                        (cons '@ (assoc-set!
+                                  meta-alist
+                                  "scripts"
+                                  (cons '@ (assoc-remove! scripts-alist
+                                                          "install"))))
+                        out))))))))))
+       #:tests? #f))
+    (synopsis "Abstract base class for Node SerialPort bindings")
+    (description "Node SerialPort is a modular suite of Node.js packages for
+accessing serial ports.  The Guix package @code{node-serialport} provides the
+recommended high-level interface.
+
+This package provides the @code{Binding} class, which uses a native addon to
+talk to the underlying system.  You never have to use @code{Binding} objects
+directly.  There is also a @code{MockBinding} available (but not yet packaged
+for Guix) to assist with testing.")))
