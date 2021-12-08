@@ -983,3 +983,37 @@ of your module, and it will return a decorated version of @code{console.error}
 for you to pass debug statements to.  This will allow you to toggle the debug
 output for different parts of your module as well as the module as a whole.")
     (license license:expat)))
+
+(define-public node-serialport-binding-abstract
+  (package
+    (name "node-serialport-binding-abstract")
+    (version "9.2.3")
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+             (url "https://github.com/serialport/node-serialport")
+             (commit "v9.2.7")))
+       (file-name (git-file-name "serialport-monorepo" version))
+       (sha256
+        (base32 "0x7zm59a5ff5yygjyw15xs3r5m3rb8av1yfrh4snn44mrwq87yg8"))))
+    (inputs
+     `(("node-debug" ,node-debug)))
+    (build-system node-build-system)
+    (arguments
+     `(#:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'chdir
+           (lambda args
+             (chdir "packages/binding-abstract"))))
+       #:tests? #f))
+    (home-page "https://serialport.io")
+    (synopsis "Abstract base class for Node SerialPort bindings")
+    (description "Node SerialPort is a modular suite of Node.js packages for
+accessing serial ports.  The Guix package @code{node-serialport} provides the
+recommended high-level interface.
+
+This package provides the @code{AbstractBinding} class, the base for all Node
+SerialPort bindings.  You wouldn't use this class directly, but instead extend
+it to make a new binding for a different platform or underling technology.")
+    (license license:expat)))
