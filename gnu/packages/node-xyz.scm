@@ -898,3 +898,46 @@ code modules and getting stack traces when things go wrong.  If a
 @code{SIGSEGV} signal is raised, the module will print a native stack trace to
 both @code{STDERR} and to a timestamped file.")
     (license license:bsd-3)))
+
+(define-public node-ms
+  (package
+    (name "node-ms")
+    (version "2.1.3")
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+             (url "https://github.com/vercel/ms")
+             (commit version)))
+       (file-name (git-file-name name version))
+       (sha256
+        (base32 "1l74kmmwffmzdz38lli0v5mdb9p9jmsjxpb48ncknqw2n74cgf08"))))
+    (build-system node-build-system)
+    (arguments
+     `(#:absent-dependencies
+       `("eslint"
+         "expect.js"
+         "husky"
+         "lint-staged"
+         "mocha"
+         "prettier")
+       #:tests? #f))
+    (home-page "https://github.com/vercel/ms")
+    (synopsis "Tiny millisecond conversion utility")
+    (description "Use this package to easily convert various time formats to
+milliseconds.
+
+Features:
+@itemize @bullet
+@item
+Works both in Node.js and in the browser.
+@item
+If a number is supplied to @code{ms}, a string with a unit is returned.
+@item
+If a string that contains the number is supplied, it returns it as a
+number (e.g. it returns @code{100} for @code{'100'}).
+@item
+If you pass a string with a number and a valid unit, the number of
+equivalent milliseconds is returned.
+@end itemize")
+    (license license:expat)))
