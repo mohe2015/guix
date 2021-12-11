@@ -941,3 +941,45 @@ If you pass a string with a number and a valid unit, the number of
 equivalent milliseconds is returned.
 @end itemize")
     (license license:expat)))
+
+(define-public node-debug
+  (package
+    (name "node-debug")
+    (version "4.3.3")
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+             (url "https://github.com/debug-js/debug")
+             (commit version)))
+       (file-name (git-file-name name version))
+       (sha256
+        (base32 "0ji0dmdl2xkgxqxvd6xjy7k3mmknmhvqjgc40vyly9ka1mpf20vb"))))
+    (inputs
+     `(("node-ms" ,node-ms)))
+    (build-system node-build-system)
+    (arguments
+     `(#:absent-dependencies
+       `("brfs"
+         "browserify"
+         "coveralls"
+         "istanbul"
+         "karma"
+         "karma-browserify"
+         "karma-chrome-launcher"
+         "karma-mocha"
+         "mocha"
+         "mocha-lcov-reporter"
+         "xo"
+         "supports-color")
+       #:tests? #f))
+    (home-page "https://github.com/debug-js/debug")
+    (synopsis "Lightweight debugging utility for Node.js and the browser")
+    (description "A tiny JavaScript debugging utility modelled after Node.js
+core's debugging technique.  orks in Node.js and web browsers.
+
+The @code{debug} module exposes a function; simply pass this function the name
+of your module, and it will return a decorated version of @code{console.error}
+for you to pass debug statements to.  This will allow you to toggle the debug
+output for different parts of your module as well as the module as a whole.")
+    (license license:expat)))
