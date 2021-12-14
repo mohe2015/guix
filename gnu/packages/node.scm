@@ -642,7 +642,7 @@ parser definition into a C output.")
 (define-public llhttp-bootstrap
   (package
     (name "llhttp")
-    (version "2.1.4")
+    (version "6.0.6")
     (source (origin
               (method git-fetch)
               (uri (git-reference
@@ -651,8 +651,7 @@ parser definition into a C output.")
               (file-name (git-file-name name version))
               (sha256
                (base32
-                "115mwyds9655p76lhglxg2blc1ksgrix6zhigaxnc2q6syy3pa6x"))
-              (patches (search-patches "llhttp-bootstrap-CVE-2020-8287.patch"))
+                "1c1p39m46frpslm5yx13hj58r7s0cila03yvqp6caip5dbizpfmr"))
               (modules '((guix build utils)))
               (snippet
                '(begin
@@ -710,17 +709,18 @@ parser definition into a C output.")
 source files.")
     (license license:expat)))
 
+;; https://github.com/nodejs/node/blob/v16.x/BUILDING.md
 (define-public node-lts
   (package
     (inherit node)
-    (version "14.18.1")
+    (version "16.13.1")
     (source (origin
               (method url-fetch)
               (uri (string-append "https://nodejs.org/dist/v" version
                                   "/node-v" version ".tar.xz"))
               (sha256
                (base32
-                "1vc9rypkgr5i5y946jnyr9jjpydxvm74p1s17rg2zayzvlddg89z"))
+                "1bb3rjb2xxwn6f4grjsa7m1pycp0ad7y6vz7v2d7kbsysx7h08sc"))
               (modules '((guix build utils)))
               (snippet
                `(begin
@@ -783,8 +783,8 @@ source files.")
                ;; FIXME: These tests fail in the build container, but they don't
                ;; seem to be indicative of real problems in practice.
                (for-each delete-file
-                         '("test/parallel/test-cluster-master-error.js"
-                           "test/parallel/test-cluster-master-kill.js"))
+                         '("test/parallel/test-cluster-primary-error.js"
+                           "test/parallel/test-cluster-primary-kill.js"))
 
                ;; These require a DNS resolver.
                (for-each delete-file
@@ -793,6 +793,10 @@ source files.")
 
                ;; These tests require networking.
                (delete-file "test/parallel/test-https-agent-unref-socket.js")
+
+               ;; These tests require /bin/sh
+               (delete-file "test/parallel/test-stdin-from-file-spawn.js")
+
 
                ;; FIXME: This test fails randomly:
                ;; https://github.com/nodejs/node/issues/31213
@@ -835,7 +839,7 @@ source files.")
      `(;; Runtime dependencies for binaries used as a bootstrap.
        ("c-ares" ,c-ares-for-node)
        ("brotli" ,brotli)
-       ("icu4c" ,icu4c-67)
+       ("icu4c" ,icu4c-68)
        ("libuv" ,libuv-for-node)
        ("nghttp2" ,nghttp2 "lib")
        ("openssl" ,openssl)
@@ -851,7 +855,7 @@ source files.")
        ("coreutils" ,coreutils)
        ("python-for-target" ,python-wrapper) ;; for node-gyp (supports python3)
        ("c-ares" ,c-ares-for-node)
-       ("icu4c" ,icu4c-67)
+       ("icu4c" ,icu4c-68)
        ("libuv" ,libuv-for-node)
        ("llhttp" ,llhttp-bootstrap)
        ("brotli" ,brotli)
