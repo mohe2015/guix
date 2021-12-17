@@ -1,38 +1,34 @@
 # guix
 
-## inside vm
+create vm with virt-manager (also enable change settings before creation and set bootloader to efi)
 
-https://guix.gnu.org/en/manual/devel/en/guix.html#Installing-Guix-in-a-VM
+https://guix.gnu.org/en/manual/devel/en/guix.html
 
-https://ci.guix.gnu.org/search/latest/ISO-9660?query=spec:images+status:success+system:x86_64-linux+image.iso
-
-```bash
-qemu-img create -f qcow2 guix-system.img 50G
-qemu-system-x86_64 -m 8192 -smp 8 -enable-kvm \
-  -nic user,model=virtio-net-pci -boot menu=on,order=d \
-  -drive file=guix-system.img \
-  -drive media=cdrom,file=*-image.iso
+```
+loadkeys de
+ip address
+passwd
+herd start ssh-daemon
 ```
 
-https://guix.gnu.org/en/manual/devel/en/guix.html#Running-Guix-in-a-VM
-
-```bash
-qemu-system-x86_64 \
-   -nic user,model=virtio-net-pci \
-   -enable-kvm -m 8192 -smp 8 \
-   -device virtio-blk,drive=myhd \
-   -drive if=none,file=guix-system.img,id=myhd
 ```
-
-ssh moritz@192.168.122.66
-
-use virt-manager to also get networking
-
-https://guix.gnu.org/manual/devel/en/guix.html#Declaring-the-Home-Environment
-
-https://guix.gnu.org/manual/devel/en/guix.html#Invoking-guix-deploy
-
-https://guix.gnu.org/manual/devel/en/guix.html#Bootstrapping
+ssh root@192.168.122.92
+ls /sys/firmware/efi/
+cfdisk
+# gpt
+# 500M EFI System
+# 49.5G Linux filesystem
+mkfs.fat -F32 /dev/vda1
+mkfs.ext4 -L my-root /dev/vda2
+mount LABEL=my-root /mnt
+mkdir -p /mnt/boot/efi
+mount /dev/vda1 /mnt/boot/efi
+herd start cow-store /mnt
+mkdir /mnt/etc
+nano /mnt/etc/config.scm
+guix pull
+guix system init /mnt/etc/config.scm /mnt
+```
 
 ## setup
 
